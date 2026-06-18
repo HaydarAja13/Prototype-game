@@ -18,6 +18,18 @@ public class PlayerMov : MonoBehaviour
     private float footstepTimer;
     private bool wasGrounded;
 
+    [Header("Stealth / Sound Generation")]
+    [Tooltip("Jumlah suara yang dihasilkan per detik saat berjalan")]
+    public float walkNoise = 15f; 
+    [Tooltip("Jumlah suara yang dihasilkan per detik saat berlari")]
+    public float sprintNoise = 40f; 
+    [Tooltip("Jumlah suara yang dihasilkan per detik saat jongkok")]
+    public float crouchNoise = 2f; 
+    [Tooltip("Jumlah suara yang dihasilkan per detik saat sliding")]
+    public float slideNoise = 25f; 
+    [Tooltip("Jumlah suara yang dihasilkan secara instan saat melompat")]
+    public float jumpNoise = 35f;
+
     [Header("Animation")]
     public Animator animator;
     [Tooltip("Offset vertikal model dari posisi player. Negatif = turun, Positif = naik. Atur di Inspector sampai kaki Kyle tepat di tanah.")]
@@ -159,6 +171,7 @@ public class PlayerMov : MonoBehaviour
             rb.linearDamping = 0;
 
         HandleAudio();
+        HandleStealthNoise();
     }
 
     private void FixedUpdate()
@@ -341,6 +354,10 @@ public class PlayerMov : MonoBehaviour
 
         if (audioSource != null && jumpSound != null)
             audioSource.PlayOneShot(jumpSound);
+            
+        // Tambahkan suara ke SoundMeter
+        if (SoundMeter.Instance != null)
+            SoundMeter.Instance.AddSound(jumpNoise);
 
         // reset y velocity
         rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
@@ -459,6 +476,33 @@ public class PlayerMov : MonoBehaviour
                 if (footstepSounds[randomIndex] != null)
                     audioSource.PlayOneShot(footstepSounds[randomIndex]);
             }
+        }
+    }
+
+    private void HandleStealthNoise()
+    {
+        // Jika belum ada SoundMeter di scene, lewati
+        if (SoundMeter.Instance == null) return;
+        
+        // Cek apakah player mencoba bergerak
+        bool isInputting = Mathf.Abs(horizontalInput) > 0.1f || Mathf.Abs(verticalInput) > 0.1f;
+        // Cek apakah player benar-benar bergerak secara fisik (mencegah jalan di tempat tapi bunyi)
+        bool isMovingPhysically = rb.linearVelocity.sqrMagnitude > 0.1f;
+
+        if (isInputting && isMovingPhysically && grounded)
+        {
+            float noiseAmount = 0f;
+
+            if (state == MovementState.sprinting)
+                noiseAmount = sprintNoise;
+            else if (state == MovementState.sliding)
+                noiseAmount = slideNoise;
+            else if (state == MovementState.crouching)
+                noiseAmount = crouchNoise;
+            else if (state == MovementState.walking)
+                noiseAmount = walkNoise;
+
+            SoundMeter.Instance.AddSound(noiseAmount * Time.deltaTime);
         }
     }
 }

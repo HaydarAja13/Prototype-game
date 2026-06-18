@@ -9,6 +9,10 @@ public class SimpleDoor : MonoBehaviour
     [Tooltip("Kecepatan pintu bergerak turun")]
     public float kecepatan = 2f;
 
+    [Header("Optimisasi Level")]
+    [Tooltip("Masukkan Parent GameObject dari Level Selanjutnya (misal: Level 2) ke sini. Level ini akan aktif saat pintu terbuka.")]
+    public GameObject levelSelanjutnya;
+
     private Vector3 posisiAwal;
     private Vector3 posisiTerbuka;
     private bool sedangTerbuka = false;
@@ -35,5 +39,11 @@ public class SimpleDoor : MonoBehaviour
     public void BukaPintu()
     {
         sedangTerbuka = true;
+
+        // Nyalakan Level Selanjutnya (Level 2) saat pintu berhasil dibuka
+        if (levelSelanjutnya != null)
+        {
+            levelSelanjutnya.SetActive(true);
+        }
     }
 }

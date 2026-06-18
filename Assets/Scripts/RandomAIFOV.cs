@@ -69,6 +69,30 @@ public class RandomAIFOV : MonoBehaviour
         myColliders = GetComponentsInChildren<Collider>();
     }
 
+    void OnEnable()
+    {
+        // Berlangganan (Subscribe) ke event bar suara penuh
+        SoundMeter.OnMaxSoundReached += ForceChaseTarget;
+    }
+
+    void OnDisable()
+    {
+        // Berhenti berlangganan saat AI mati/non-aktif agar tidak error
+        SoundMeter.OnMaxSoundReached -= ForceChaseTarget;
+    }
+
+    // Fungsi ini dipanggil otomatis ketika SoundMeter penuh (100%)
+    public void ForceChaseTarget(Transform target)
+    {
+        if (target == null) return;
+        
+        // Pura-pura melihat target secara langsung meskipun di balik tembok
+        currentTarget = target;
+        loseSightTimer = chaseDuration;
+        
+        Debug.Log("[AI] Mendengar suara bising! Langsung mengejar sumber suara!");
+    }
+
     void Update()
     {
         // Cegah error jika agent sedang tidak aktif atau belum menempel pada NavMesh (terutama saat baru respawn)

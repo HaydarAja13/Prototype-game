@@ -38,6 +38,10 @@ public class WeaponShooting : MonoBehaviour
     public float recoilZ = 0.2f;        // Hentakan rotasi miring (roll)
     public PlayerCam playerCam;         // Referensi ke script PlayerCam untuk efek recoil
 
+    [Header("Stealth / Sound")]
+    [Tooltip("Jumlah suara stealth yang dihasilkan dari 1 tembakan (0-100)")]
+    public float shootNoise = 100f;
+
     void Awake()
     {
         // Mencari PlayerCam secara otomatis dari objek fpsCam jika belum dimasukkan
@@ -112,6 +116,12 @@ public class WeaponShooting : MonoBehaviour
         {
             // Menggunakan PlayOneShot agar suara tembakan bisa bertumpuk (tidak terpotong jika menembak cepat)
             audioSource.PlayOneShot(shootSound);
+        }
+
+        // Laporkan ke SoundMeter bahwa player sedang menembak
+        if (SoundMeter.Instance != null)
+        {
+            SoundMeter.Instance.AddSound(shootNoise);
         }
 
         // Terapkan efek recoil ke kamera
