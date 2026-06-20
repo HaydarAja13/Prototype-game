@@ -3,6 +3,7 @@ Shader "Unlit/CRTUnlit"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
+        _BlitTexture ("Blit Texture", 2D) = "white" {}
         _BorderTex ("BorderTexture", 2D) = "white" {}
         _BorderTint ("BorderTint", Color) = (1,1,1,1)
         
@@ -42,7 +43,7 @@ Shader "Unlit/CRTUnlit"
     }
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
+        Tags { "RenderType"="Opaque" "RenderPipeline" = "UniversalPipeline" }
         LOD 100
 
         Pass
@@ -70,6 +71,7 @@ Shader "Unlit/CRTUnlit"
 
 
             sampler2D _MainTex;
+            sampler2D _BlitTexture;
             sampler2D _BorderTex;
             float4 _BorderTint;
             float4 _MainTex_ST;

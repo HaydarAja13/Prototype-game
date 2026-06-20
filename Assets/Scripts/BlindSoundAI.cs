@@ -38,6 +38,11 @@ public class BlindSoundAI : MonoBehaviour
     public AudioClip ambientSound;
     public AudioClip shootSound;
     
+    [Range(0f, 1f)] public float ambientVolume = 0.3f;
+    [Range(0f, 1f)] public float movementVolume = 0.3f;
+    [Range(0f, 1f)] public float chaseVolume = 0.4f;
+    [Range(0f, 1f)] public float sfxVolume = 0.6f;
+    
     private AudioSource movementAudioSource;
     private AudioSource ambientAudioSource;
     private AudioSource sfxAudioSource;
@@ -68,12 +73,14 @@ public class BlindSoundAI : MonoBehaviour
         // --- SETUP AUDIO SOURCES ---
         movementAudioSource = gameObject.AddComponent<AudioSource>();
         movementAudioSource.spatialBlend = 1f; // Suara 3D
+        movementAudioSource.volume = movementVolume;
         movementAudioSource.minDistance = 15f;
         movementAudioSource.maxDistance = 50f;
         movementAudioSource.rolloffMode = AudioRolloffMode.Linear;
 
         ambientAudioSource = gameObject.AddComponent<AudioSource>();
         ambientAudioSource.spatialBlend = 1f;
+        ambientAudioSource.volume = ambientVolume;
         ambientAudioSource.loop = true;
         ambientAudioSource.minDistance = 30f;  // Mulai terdengar jelas dari jarak 30m
         ambientAudioSource.maxDistance = 150f; // Jangkauan global (bisa terdengar dari ujung map)
@@ -86,12 +93,14 @@ public class BlindSoundAI : MonoBehaviour
 
         sfxAudioSource = gameObject.AddComponent<AudioSource>();
         sfxAudioSource.spatialBlend = 1f;
+        sfxAudioSource.volume = sfxVolume;
         sfxAudioSource.minDistance = 20f;
         sfxAudioSource.maxDistance = 80f;
         sfxAudioSource.rolloffMode = AudioRolloffMode.Linear;
 
         chaseAudioSource = gameObject.AddComponent<AudioSource>();
         chaseAudioSource.spatialBlend = 1f;
+        chaseAudioSource.volume = chaseVolume;
         chaseAudioSource.loop = true;
         chaseAudioSource.minDistance = 25f;
         chaseAudioSource.maxDistance = 100f;
