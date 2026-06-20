@@ -80,12 +80,50 @@ public class PlayerInteract : MonoBehaviour
                 {
                     if (CCTVManager.Instance != null)
                     {
-                        CCTVManager.Instance.EnterCCTVMode(cctvTerminal.targetCameraIndex);
+                        CCTVManager.Instance.EnterCCTVMode(cctvTerminal.targetCameraIndex, cctvTerminal.targetGroupID);
                     }
                     else
                     {
                         Debug.LogWarning("CCTVManager tidak ditemukan di scene!");
                     }
+                }
+            }
+            else if (hit.collider.TryGetComponent(out FlashlightItem flashlightItem))
+            {
+                hitInteractable = true;
+                hintMessage = $"[{interactKey.ToString()}] Take a Flashlight";
+
+                if (Input.GetKeyDown(interactKey))
+                {
+                    PlayerFlashlight playerFlashlight = GetComponent<PlayerFlashlight>();
+                    if (playerFlashlight == null) playerFlashlight = GetComponentInParent<PlayerFlashlight>();
+                    if (playerFlashlight == null) playerFlashlight = FindObjectOfType<PlayerFlashlight>();
+
+                    if (playerFlashlight != null)
+                    {
+                        playerFlashlight.PickUpFlashlight();
+                    }
+
+                    Destroy(hit.collider.gameObject);
+                }
+            }
+            else if (hit.collider.TryGetComponent(out InteractableComputer computer))
+            {
+                hitInteractable = true;
+                
+                if (PlayerInventory.Instance != null && PlayerInventory.Instance.hasFloppyDisk)
+                {
+                    hintMessage = $"[{interactKey.ToString()}] Use Floppy Disk on {computer.computerName}";
+                    
+                    if (Input.GetKeyDown(interactKey))
+                    {
+                        PlayerInventory.Instance.ConsumeFloppyDisk();
+                        computer.PlayVideo();
+                    }
+                }
+                else
+                {
+                    hintMessage = $"Need Floppy Disk to use {computer.computerName}";
                 }
             }
         }

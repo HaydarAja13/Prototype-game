@@ -29,20 +29,6 @@ public class PlayerHealth : MonoBehaviour
 
     void Update()
     {
-        // ==========================================
-        // SISTEM TOMBOL TEST (Dari contoh internetmu)
-        // ==========================================
-        // Tekan Enter untuk mengurangi darah
-        if (Input.GetKeyDown(KeyCode.Return))
-        {
-            TakeDamage(10f);
-        }
-
-        // Tekan Space untuk menambah darah
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            Heal(10f);
-        }
 
         // ==========================================
         // EFEK LAYAR MERAH

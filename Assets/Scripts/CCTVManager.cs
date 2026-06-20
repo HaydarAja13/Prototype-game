@@ -1,13 +1,25 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
+public class CCTVCameraData
+{
+    [Tooltip("Kamera CCTV")]
+    public Camera cameraObj;
+    [Tooltip("ID Grup/Ruang CCTV (Misal: 'A')")]
+    public string groupID = "A";
+    [Tooltip("Opsional: Objek Light (cahaya) yang menyala HANYA saat CCTV ini aktif")]
+    public Light cctvLight;
+}
+
 public class CCTVManager : MonoBehaviour
 {
     public static CCTVManager Instance { get; private set; }
 
     [Header("CCTV Settings")]
-    [Tooltip("Masukkan semua kamera CCTV yang ada di scene ke dalam list ini")]
-    public List<Camera> cctvCameras = new List<Camera>();
+    [Tooltip("Masukkan semua kamera CCTV yang ada di scene ke dalam list ini beserta grup/ruangnya")]
+    public List<CCTVCameraData> cctvCameras = new List<CCTVCameraData>();
+    private List<CCTVCameraData> currentGroupCameras = new List<CCTVCameraData>();
     private int currentCameraIndex = 0;
     
     [Header("Audio Settings")]
@@ -49,11 +61,14 @@ public class CCTVManager : MonoBehaviour
 
     private void Start()
     {
-        // Matikan semua kamera CCTV di awal permainan
-        foreach (var cam in cctvCameras)
+        // Matikan semua kamera CCTV dan cahayanya di awal permainan
+        foreach (var camData in cctvCameras)
         {
-            if (cam != null)
-                cam.gameObject.SetActive(false);
+            if (camData.cameraObj != null)
+                camData.cameraObj.gameObject.SetActive(false);
+            
+            if (camData.cctvLight != null)
+                camData.cctvLight.enabled = false;
         }
 
         // Kumpulkan referensi script movement dan combat jika playerObj tidak null
@@ -80,7 +95,7 @@ public class CCTVManager : MonoBehaviour
             // Pindah ke kamera berikutnya dengan menekan E (jika cooldown sudah habis)
             if (Input.GetKeyDown(KeyCode.E) && switchCooldown <= 0f)
             {
-                Debug.Log($"[CCTV Manager] Berpindah kamera. Total CCTV: {cctvCameras.Count}");
+                Debug.Log($"[CCTV Manager] Berpindah kamera. Total CCTV di grup ini: {currentGroupCameras.Count}");
                 SwitchToNextCamera();
             }
 
@@ -93,7 +108,7 @@ public class CCTVManager : MonoBehaviour
         }
     }
 
-    public void EnterCCTVMode(int startingIndex = 0)
+    public void EnterCCTVMode(int startingIndex = 0, string groupID = "")
     {
         if (isViewingCCTV) return; // Cegah re-enter jika sudah di dalam CCTV
 
@@ -103,11 +118,30 @@ public class CCTVManager : MonoBehaviour
             return;
         }
 
+        // Filter kamera berdasarkan grup
+        currentGroupCameras.Clear();
+        foreach (var camData in cctvCameras)
+        {
+            if (string.IsNullOrEmpty(groupID) || camData.groupID == groupID)
+            {
+                if (camData.cameraObj != null)
+                {
+                    currentGroupCameras.Add(camData);
+                }
+            }
+        }
+
+        if (currentGroupCameras.Count == 0)
+        {
+            Debug.LogWarning($"Tidak ada kamera CCTV di grup {groupID}!");
+            return;
+        }
+
         isViewingCCTV = true;
         switchCooldown = 0.5f; // Beri jeda 0.5 detik sebelum bisa ganti kamera
         
         // Atur index sesuai terminal yang dihack
-        if (startingIndex >= 0 && startingIndex < cctvCameras.Count)
+        if (startingIndex >= 0 && startingIndex < currentGroupCameras.Count)
         {
             currentCameraIndex = startingIndex;
         }
@@ -139,12 +173,16 @@ public class CCTVManager : MonoBehaviour
     {
         isViewingCCTV = false;
 
-        // 1. Matikan semua kamera CCTV
-        foreach (var cam in cctvCameras)
+        // 1. Matikan semua kamera CCTV dan cahayanya
+        foreach (var camData in cctvCameras)
         {
-            if (cam != null)
+            if (camData.cameraObj != null)
             {
-                cam.gameObject.SetActive(false);
+                camData.cameraObj.gameObject.SetActive(false);
+            }
+            if (camData.cctvLight != null)
+            {
+                camData.cctvLight.enabled = false;
             }
         }
 
@@ -163,14 +201,18 @@ public class CCTVManager : MonoBehaviour
         // Beri jeda lagi agar tidak tertekan 2 kali dengan cepat
         switchCooldown = 0.2f;
 
-        // Matikan kamera saat ini
-        if (cctvCameras[currentCameraIndex] != null)
+        // Matikan kamera dan cahaya saat ini
+        if (currentGroupCameras[currentCameraIndex].cameraObj != null)
         {
-            cctvCameras[currentCameraIndex].gameObject.SetActive(false);
+            currentGroupCameras[currentCameraIndex].cameraObj.gameObject.SetActive(false);
+        }
+        if (currentGroupCameras[currentCameraIndex].cctvLight != null)
+        {
+            currentGroupCameras[currentCameraIndex].cctvLight.enabled = false;
         }
 
         // Geser index (kembali ke 0 jika sudah mencapai maksimal)
-        currentCameraIndex = (currentCameraIndex + 1) % cctvCameras.Count;
+        currentCameraIndex = (currentCameraIndex + 1) % currentGroupCameras.Count;
 
         // Nyalakan kamera selanjutnya
         EnableCurrentCCTV();
@@ -186,9 +228,9 @@ public class CCTVManager : MonoBehaviour
 
     private void EnableCurrentCCTV()
     {
-        if (cctvCameras[currentCameraIndex] != null)
+        if (currentGroupCameras[currentCameraIndex].cameraObj != null)
         {
-            Camera cam = cctvCameras[currentCameraIndex];
+            Camera cam = currentGroupCameras[currentCameraIndex].cameraObj;
             cam.gameObject.SetActive(true);
             
             // Tambahkan dan aktifkan AudioListener agar kita bisa mendengar suara dari sudut pandang CCTV ini
@@ -198,6 +240,11 @@ public class CCTVManager : MonoBehaviour
                 listener = cam.gameObject.AddComponent<AudioListener>();
             }
             listener.enabled = true;
+        }
+
+        if (currentGroupCameras[currentCameraIndex].cctvLight != null)
+        {
+            currentGroupCameras[currentCameraIndex].cctvLight.enabled = true;
         }
     }
 

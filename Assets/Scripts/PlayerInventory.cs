@@ -7,9 +7,13 @@ public class PlayerInventory : MonoBehaviour
     public static PlayerInventory Instance;
 
     [Header("UI References")]
-    [Tooltip("Panel atau Game Object yang berisi slot item")]
+    [Tooltip("Panel atau Game Object yang berisi slot item (Keycard)")]
     public GameObject itemSlotUI; 
     public Image itemIconUI;
+
+    [Tooltip("Panel atau Game Object yang berisi slot item (Floppy Disk)")]
+    public GameObject floppySlotUI; 
+    public Image floppyIconUI;
 
     [Header("Inspect UI References")]
     [Tooltip("Panel layar penuh (latar belakang gelap) untuk Inspect")]
@@ -18,8 +22,10 @@ public class PlayerInventory : MonoBehaviour
     public Image inspectImageUI;
 
     [Header("Current Item State")]
-    public bool hasItem = false;
+    public bool hasItem = false; // For Keycard
     public string currentItemName;
+    
+    public bool hasFloppyDisk = false;
     private bool isInspecting = false;
 
     private void Awake()
@@ -36,6 +42,7 @@ public class PlayerInventory : MonoBehaviour
         
         // Sembunyikan UI saat game mulai
         if (itemSlotUI != null) itemSlotUI.SetActive(false);
+        if (floppySlotUI != null) floppySlotUI.SetActive(false);
         if (inspectPanelUI != null) inspectPanelUI.SetActive(false);
     }
 
@@ -96,22 +103,45 @@ public class PlayerInventory : MonoBehaviour
     // Fungsi ini dipanggil dari PlayerInteract saat mengambil PickableItem
     public void PickUpItem(PickableItem item)
     {
-        hasItem = true;
-        currentItemName = item.itemName;
-
-        // Tampilkan UI Slot
-        if (itemSlotUI != null)
+        string lowerName = item.itemName.ToLower();
+        
+        if (lowerName.Contains("floppy") || lowerName.Contains("disk"))
         {
-            itemSlotUI.SetActive(true);
-            
-            if (itemIconUI != null && item.itemIcon != null) 
+            hasFloppyDisk = true;
+            if (floppySlotUI != null)
             {
-                itemIconUI.sprite = item.itemIcon;
-                itemIconUI.gameObject.SetActive(true);
+                floppySlotUI.SetActive(true);
+                
+                if (floppyIconUI != null && item.itemIcon != null) 
+                {
+                    floppyIconUI.sprite = item.itemIcon;
+                    floppyIconUI.gameObject.SetActive(true);
+                }
+                else if (floppyIconUI != null)
+                {
+                    floppyIconUI.gameObject.SetActive(false);
+                }
             }
-            else if (itemIconUI != null)
+        }
+        else
+        {
+            hasItem = true;
+            currentItemName = item.itemName;
+
+            // Tampilkan UI Slot
+            if (itemSlotUI != null)
             {
-                itemIconUI.gameObject.SetActive(false);
+                itemSlotUI.SetActive(true);
+                
+                if (itemIconUI != null && item.itemIcon != null) 
+                {
+                    itemIconUI.sprite = item.itemIcon;
+                    itemIconUI.gameObject.SetActive(true);
+                }
+                else if (itemIconUI != null)
+                {
+                    itemIconUI.gameObject.SetActive(false);
+                }
             }
         }
     }
@@ -123,10 +153,22 @@ public class PlayerInventory : MonoBehaviour
         currentItemName = "";
         CloseInspect(); // Pastikan layar inspect tertutup jika item hilang
 
-        // Sembunyikan UI Slot
+        // Sembunyikan UI Slot Keycard
         if (itemSlotUI != null)
         {
             itemSlotUI.SetActive(false);
+        }
+    }
+
+    // Fungsi ini dipanggil saat menggunakan floppy disk di komputer
+    public void ConsumeFloppyDisk()
+    {
+        hasFloppyDisk = false;
+        
+        // Sembunyikan UI Slot Floppy Disk
+        if (floppySlotUI != null)
+        {
+            floppySlotUI.SetActive(false);
         }
     }
 }

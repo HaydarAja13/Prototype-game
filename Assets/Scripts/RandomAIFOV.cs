@@ -29,6 +29,11 @@ public class RandomAIFOV : MonoBehaviour
     [Header("Animation Settings")]
     public Animator animator; // Referensi ke komponen Animator musuh
 
+    [Header("Audio Settings")]
+    public AudioSource audioSource;
+    public AudioClip walkSound;
+    public AudioClip shootSound;
+
     [Header("Combat Settings")]
     public GameObject projectilePrefab; // Prefab peluru musuh
     public Transform firePoint;         // Titik muncul peluru
@@ -67,6 +72,8 @@ public class RandomAIFOV : MonoBehaviour
 
         // Cache collider untuk mengabaikan tabrakan peluru
         myColliders = GetComponentsInChildren<Collider>();
+
+        if (audioSource == null) audioSource = GetComponent<AudioSource>();
     }
 
     void OnEnable()
@@ -99,9 +106,31 @@ public class RandomAIFOV : MonoBehaviour
         if (!agent.isOnNavMesh) return;
 
         // Mengirimkan kecepatan saat ini ke Animator
+        float speedMagnitude = agent.velocity.magnitude;
         if (animator != null)
         {
-            animator.SetFloat("Speed", agent.velocity.magnitude);
+            animator.SetFloat("Speed", speedMagnitude);
+        }
+
+        // Logika Suara Berjalan
+        if (audioSource != null && walkSound != null)
+        {
+            if (speedMagnitude > 0.1f && !agent.isStopped)
+            {
+                if (!audioSource.isPlaying || audioSource.clip != walkSound)
+                {
+                    audioSource.clip = walkSound;
+                    audioSource.loop = true;
+                    audioSource.Play();
+                }
+            }
+            else
+            {
+                if (audioSource.isPlaying && audioSource.clip == walkSound)
+                {
+                    audioSource.Stop();
+                }
+            }
         }
 
         // 1. Cek apakah ada target di dalam FOV (Dioptimasi agar tidak berjalan setiap frame)
@@ -228,6 +257,12 @@ public class RandomAIFOV : MonoBehaviour
         if (animator != null)
         {
             animator.SetTrigger("Shoot");
+        }
+
+        // Putar efek suara menembak
+        if (audioSource != null && shootSound != null)
+        {
+            audioSource.PlayOneShot(shootSound);
         }
 
         // Buat proyektil di posisi firePoint

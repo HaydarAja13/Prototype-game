@@ -52,7 +52,7 @@ public class SoundMeter : MonoBehaviour
         else
         {
             // Fallback mencari objek yang punya PlayerMov
-            PlayerMov pm = FindFirstObjectByType<PlayerMov>();
+            PlayerMov pm = FindAnyObjectByType<PlayerMov>();
             if (pm != null) playerTransform = pm.transform;
         }
     }
