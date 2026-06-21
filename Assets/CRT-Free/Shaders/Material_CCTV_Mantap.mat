@@ -26,9 +26,9 @@ Material:
     m_Ints: []
     m_Floats:
     - _ColorShift: 0.002
-    - _Curvature: 0.15
+    - _Curvature: 0.125
     - _Scanlines: 1
-    - _ScanlinesOpacity: 0.5
+    - _ScanlinesOpacity: 0.25
     - _Vignette: 1.5
     m_Colors: []
   m_BuildTextureStacks: []
