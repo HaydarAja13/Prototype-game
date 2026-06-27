@@ -26,6 +26,7 @@ public class PlayerInventory : MonoBehaviour
     public string currentItemName;
     
     public bool hasFloppyDisk = false;
+    public UnityEngine.Video.VideoClip currentFloppyVideoClip;
     private bool isInspecting = false;
 
     private void Awake()
@@ -108,6 +109,7 @@ public class PlayerInventory : MonoBehaviour
         if (lowerName.Contains("floppy") || lowerName.Contains("disk"))
         {
             hasFloppyDisk = true;
+            currentFloppyVideoClip = item.videoClip;
             if (floppySlotUI != null)
             {
                 floppySlotUI.SetActive(true);
@@ -164,6 +166,7 @@ public class PlayerInventory : MonoBehaviour
     public void ConsumeFloppyDisk()
     {
         hasFloppyDisk = false;
+        currentFloppyVideoClip = null;
         
         // Sembunyikan UI Slot Floppy Disk
         if (floppySlotUI != null)

@@ -9,7 +9,7 @@ public class InteractableComputer : MonoBehaviour
     public UnityEngine.Video.VideoPlayer videoPlayer;
     public GameObject videoDisplayObject;
 
-    public void PlayVideo()
+    public void PlayVideo(UnityEngine.Video.VideoClip clip)
     {
         if (videoDisplayObject != null)
         {
@@ -17,6 +17,10 @@ public class InteractableComputer : MonoBehaviour
         }
         if (videoPlayer != null)
         {
+            if (clip != null)
+            {
+                videoPlayer.clip = clip;
+            }
             videoPlayer.Play();
         }
     }

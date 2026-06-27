@@ -50,6 +50,19 @@ public class PlayerInteract : MonoBehaviour
                 {
                     // Masukkan ke inventory player
                     PlayerInventory.Instance.PickUpItem(pickableItem);
+                    
+                    // Cek apakah item ini menyelesaikan objective
+                    if (pickableItem.completesObjective && ObjectiveManager.Instance != null)
+                    {
+                        ObjectiveManager.Instance.CompleteObjectiveByIndex(pickableItem.objectiveIndexToComplete);
+                    }
+                    
+                    // Mainkan dialog/subtitle jika ada
+                    if (DialogueManager.Instance != null && (pickableItem.voiceClip != null || !string.IsNullOrEmpty(pickableItem.subtitleText)))
+                    {
+                        DialogueManager.Instance.PlayDialogue(pickableItem.voiceClip, pickableItem.subtitleText);
+                    }
+                    
                     // Hapus objek 3D dari dunia
                     Destroy(hit.collider.gameObject);
                 }
@@ -63,6 +76,18 @@ public class PlayerInteract : MonoBehaviour
                 {
                     // Tampilkan gambar di layar tanpa memasukkan ke inventory
                     PlayerInventory.Instance.ShowInspect(inspectableItem.documentImage);
+
+                    // Cek apakah menginspeksi item ini menyelesaikan objective
+                    if (inspectableItem.completesObjective && ObjectiveManager.Instance != null)
+                    {
+                        ObjectiveManager.Instance.CompleteObjectiveByIndex(inspectableItem.objectiveIndexToComplete);
+                    }
+
+                    // Mainkan dialog/subtitle jika ada
+                    if (DialogueManager.Instance != null && (inspectableItem.voiceClip != null || !string.IsNullOrEmpty(inspectableItem.subtitleText)))
+                    {
+                        DialogueManager.Instance.PlayDialogue(inspectableItem.voiceClip, inspectableItem.subtitleText);
+                    }
 
                     // Mainkan suara inspect
                     if (interactAudioSource != null && inspectSound != null)
@@ -104,6 +129,12 @@ public class PlayerInteract : MonoBehaviour
                         playerFlashlight.PickUpFlashlight();
                     }
 
+                    // Mainkan dialog/subtitle jika ada
+                    if (DialogueManager.Instance != null && (flashlightItem.voiceClip != null || !string.IsNullOrEmpty(flashlightItem.subtitleText)))
+                    {
+                        DialogueManager.Instance.PlayDialogue(flashlightItem.voiceClip, flashlightItem.subtitleText);
+                    }
+
                     Destroy(hit.collider.gameObject);
                 }
             }
@@ -117,8 +148,9 @@ public class PlayerInteract : MonoBehaviour
                     
                     if (Input.GetKeyDown(interactKey))
                     {
+                        var clip = PlayerInventory.Instance.currentFloppyVideoClip;
                         PlayerInventory.Instance.ConsumeFloppyDisk();
-                        computer.PlayVideo();
+                        computer.PlayVideo(clip);
                     }
                 }
                 else
