@@ -35,10 +35,10 @@ public class Gliding : MonoBehaviour
             StartGlide();
         }
 
-        // Berhenti glide: lepas F, atau mendarat
+        // Berhenti glide: lepas F/JoystickButton3, atau mendarat
         if (pm.gliding)
         {
-            if (Input.GetKeyUp(glideKey) || pm.grounded)
+            if (Input.GetKeyUp(glideKey) || Input.GetKeyUp(KeyCode.JoystickButton3) || pm.grounded)
             {
                 StopGlide();
             }

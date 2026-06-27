@@ -20,10 +20,29 @@ public class PlayerFlashlight : MonoBehaviour
         }
     }
 
+    private bool dpadUpLocker = false;
+
     void Update()
     {
+        // D-Pad Up detection via Axis
+        float dpadY = 0f;
+        try { dpadY = Input.GetAxisRaw("DPadY"); } catch {} 
+
+        bool dpadUpPressed = dpadY > 0.5f;
+        bool toggleTriggered = Input.GetKeyDown(toggleKey);
+
+        if (dpadUpPressed && !dpadUpLocker)
+        {
+            toggleTriggered = true;
+            dpadUpLocker = true;
+        }
+        else if (!dpadUpPressed)
+        {
+            dpadUpLocker = false;
+        }
+
         // Hanya bisa di-toggle jika player sudah mengambil senter
-        if (hasFlashlight && Input.GetKeyDown(toggleKey))
+        if (hasFlashlight && toggleTriggered)
         {
             ToggleFlashlight();
         }

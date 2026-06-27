@@ -85,8 +85,9 @@ public class WeaponShooting : MonoBehaviour
 
     void Update()
     {
+        if (PauseManager.isPaused) return;
         // Cek apakah tombol tembak (Klik Kiri) sedang ditekan/ditahan
-        bool isShooting = Input.GetKey(shootKey);
+        bool isShooting = Input.GetKey(shootKey) || Input.GetKey(KeyCode.JoystickButton5);
 
         if (isShooting)
         {

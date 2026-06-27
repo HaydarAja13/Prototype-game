@@ -11,7 +11,7 @@ public class UIPopupPanel : MonoBehaviour
         // Jika panel sedang aktif dan pemain menekan tombol ESC di keyboard
         if (popupPanel != null && popupPanel.activeSelf)
         {
-            if (Input.GetKeyDown(KeyCode.Escape))
+            if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.JoystickButton1))
             {
                 HidePanel();
             }

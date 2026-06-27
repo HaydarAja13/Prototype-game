@@ -185,7 +185,7 @@ public class PlayerMov : MonoBehaviour
         verticalInput = Input.GetAxisRaw("Vertical");
 
         // when to jump
-        if (Input.GetKey(jumpKey) && readyToJump && grounded)
+        if ((Input.GetKey(jumpKey) || Input.GetKey(KeyCode.JoystickButton0)) && readyToJump && grounded)
         {
             readyToJump = false;
 
@@ -195,7 +195,7 @@ public class PlayerMov : MonoBehaviour
         }
 
         // start crouch
-        if (Input.GetKeyDown(crouchKey))
+        if (Input.GetKeyDown(crouchKey) || Input.GetKeyDown(KeyCode.JoystickButton1))
         {
             if (audioSource != null && crouchSound != null && grounded)
                 audioSource.PlayOneShot(crouchSound);
@@ -205,7 +205,7 @@ public class PlayerMov : MonoBehaviour
         }
 
         // stop crouch
-        if (Input.GetKeyUp(crouchKey))
+        if (Input.GetKeyUp(crouchKey) || Input.GetKeyUp(KeyCode.JoystickButton1))
         {
             transform.localScale = new Vector3(transform.localScale.x, startYScale, transform.localScale.z);
         }
@@ -225,14 +225,14 @@ public class PlayerMov : MonoBehaviour
         }
 
         // Mode - Crouching
-        else if (Input.GetKey(crouchKey))
+        else if (Input.GetKey(crouchKey) || Input.GetKey(KeyCode.JoystickButton1))
         {
             state = MovementState.crouching;
             desiredMoveSpeed = crouchSpeed;
         }
 
         // Mode - Sprinting
-        else if (grounded && Input.GetKey(sprintKey))
+        else if (grounded && (Input.GetKey(sprintKey) || Input.GetKey(KeyCode.JoystickButton10)))
         {
             state = MovementState.sprinting;
             desiredMoveSpeed = sprintSpeed;

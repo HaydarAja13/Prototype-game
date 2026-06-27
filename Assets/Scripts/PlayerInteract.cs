@@ -36,7 +36,7 @@ public class PlayerInteract : MonoBehaviour
                 hitInteractable = true;
                 hintMessage = $"[{interactKey.ToString()}] Press Button";
                 
-                if (Input.GetKeyDown(interactKey))
+                if (Input.GetKeyDown(interactKey) || Input.GetKeyDown(KeyCode.JoystickButton2))
                 {
                     keypadButton.PressButton();
                 }
@@ -46,7 +46,7 @@ public class PlayerInteract : MonoBehaviour
                 hitInteractable = true;
                 hintMessage = $"[{interactKey.ToString()}] Pickup {pickableItem.itemName}";
                 
-                if (Input.GetKeyDown(interactKey))
+                if (Input.GetKeyDown(interactKey) || Input.GetKeyDown(KeyCode.JoystickButton2))
                 {
                     // Masukkan ke inventory player
                     PlayerInventory.Instance.PickUpItem(pickableItem);
@@ -72,7 +72,7 @@ public class PlayerInteract : MonoBehaviour
                 hitInteractable = true;
                 hintMessage = $"[{interactKey.ToString()}] Inspect {inspectableItem.itemName}";
                 
-                if (Input.GetKeyDown(interactKey))
+                if (Input.GetKeyDown(interactKey) || Input.GetKeyDown(KeyCode.JoystickButton2))
                 {
                     // Tampilkan gambar di layar tanpa memasukkan ke inventory
                     PlayerInventory.Instance.ShowInspect(inspectableItem.documentImage);
@@ -101,7 +101,7 @@ public class PlayerInteract : MonoBehaviour
                 hitInteractable = true;
                 hintMessage = $"[{interactKey.ToString()}] Hack {cctvTerminal.terminalName}";
 
-                if (Input.GetKeyDown(interactKey))
+                if (Input.GetKeyDown(interactKey) || Input.GetKeyDown(KeyCode.JoystickButton2))
                 {
                     if (CCTVManager.Instance != null)
                     {
@@ -118,11 +118,11 @@ public class PlayerInteract : MonoBehaviour
                 hitInteractable = true;
                 hintMessage = $"[{interactKey.ToString()}] Take a Flashlight";
 
-                if (Input.GetKeyDown(interactKey))
+                if (Input.GetKeyDown(interactKey) || Input.GetKeyDown(KeyCode.JoystickButton2))
                 {
                     PlayerFlashlight playerFlashlight = GetComponent<PlayerFlashlight>();
                     if (playerFlashlight == null) playerFlashlight = GetComponentInParent<PlayerFlashlight>();
-                    if (playerFlashlight == null) playerFlashlight = FindObjectOfType<PlayerFlashlight>();
+                    if (playerFlashlight == null) playerFlashlight = FindFirstObjectByType<PlayerFlashlight>();
 
                     if (playerFlashlight != null)
                     {
@@ -146,7 +146,7 @@ public class PlayerInteract : MonoBehaviour
                 {
                     hintMessage = $"[{interactKey.ToString()}] Use Floppy Disk on {computer.computerName}";
                     
-                    if (Input.GetKeyDown(interactKey))
+                    if (Input.GetKeyDown(interactKey) || Input.GetKeyDown(KeyCode.JoystickButton2))
                     {
                         var clip = PlayerInventory.Instance.currentFloppyVideoClip;
                         PlayerInventory.Instance.ConsumeFloppyDisk();

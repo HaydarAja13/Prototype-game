@@ -92,15 +92,15 @@ public class CCTVManager : MonoBehaviour
                 switchCooldown -= Time.deltaTime;
             }
 
-            // Pindah ke kamera berikutnya dengan menekan E (jika cooldown sudah habis)
-            if (Input.GetKeyDown(KeyCode.E) && switchCooldown <= 0f)
+            // Pindah kamera dengan E atau X/Square
+            if ((Input.GetKeyDown(KeyCode.E) || Input.GetKeyDown(KeyCode.JoystickButton2)) && switchCooldown <= 0f)
             {
                 Debug.Log($"[CCTV Manager] Berpindah kamera. Total CCTV di grup ini: {currentGroupCameras.Count}");
                 SwitchToNextCamera();
             }
 
-            // Keluar dari mode CCTV dengan menekan Escape
-            if (Input.GetKeyDown(KeyCode.Escape))
+            // Keluar CCTV mode dengan ESC atau B/Circle
+            if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.JoystickButton1))
             {
                 Debug.Log("[CCTV Manager] Keluar dari CCTV");
                 ExitCCTVMode();

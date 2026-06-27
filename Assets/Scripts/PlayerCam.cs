@@ -56,7 +56,7 @@ public class PlayerCam : MonoBehaviour
     // Logika Aim Scope (Zoom) dengan Mouse Kanan
     if (cam != null)
     {
-        float targetFOV = Input.GetMouseButton(1) ? aimFOV : normalFOV;
+        float targetFOV = (Input.GetMouseButton(1) || Input.GetKey(KeyCode.JoystickButton4)) ? aimFOV : normalFOV;
         cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, targetFOV, aimSpeed * Time.deltaTime);
     }
   }

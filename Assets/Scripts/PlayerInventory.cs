@@ -47,16 +47,35 @@ public class PlayerInventory : MonoBehaviour
         if (inspectPanelUI != null) inspectPanelUI.SetActive(false);
     }
 
+    private bool dpadDownLocker = false;
+
     private void Update()
     {
-        // Jika kita memiliki item dan menekan I, buka/tutup inspect
-        if (hasItem && Input.GetKeyDown(KeyCode.I))
+        // D-Pad Down detection via Axis
+        float dpadY = 0f;
+        try { dpadY = Input.GetAxisRaw("DPadY"); } catch {}
+
+        bool dpadDownPressed = dpadY < -0.5f;
+        bool inspectTriggered = Input.GetKeyDown(KeyCode.I);
+
+        if (dpadDownPressed && !dpadDownLocker)
+        {
+            inspectTriggered = true;
+            dpadDownLocker = true;
+        }
+        else if (!dpadDownPressed)
+        {
+            dpadDownLocker = false;
+        }
+
+        // Tekan I (Keyboard) atau D-Pad Down (Gamepad) untuk Inspect
+        if (hasItem && inspectTriggered)
         {
             ToggleInspect();
         }
 
-        // Jika sedang inspect dan menekan Escape, tutup inspect
-        if (isInspecting && Input.GetKeyDown(KeyCode.Escape))
+        // Tekan ESC (Keyboard) atau B/Circle (Gamepad) untuk keluar inspect
+        if (isInspecting && (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.JoystickButton1)))
         {
             CloseInspect();
         }

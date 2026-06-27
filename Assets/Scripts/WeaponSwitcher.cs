@@ -40,6 +40,7 @@ public class WeaponSwitcher : MonoBehaviour
 
     void Update()
     {
+        if (PauseManager.isPaused) return;
         // Detect number key presses for weapon selection
         for (int i = 0; i < weapons.Length && i < 9; i++) // support up to key 9
         {
@@ -65,6 +66,14 @@ public class WeaponSwitcher : MonoBehaviour
             int prevWeapon = currentWeapon - 1;
             if (prevWeapon < 0) prevWeapon = weapons.Length - 1;
             SwitchWeapon(prevWeapon);
+        }
+
+        // Gamepad Y/Triangle weapon selection
+        if (Input.GetKeyDown(KeyCode.JoystickButton3))
+        {
+            int nextWeapon = currentWeapon + 1;
+            if (nextWeapon >= weapons.Length) nextWeapon = 0;
+            SwitchWeapon(nextWeapon);
         }
     }
 
