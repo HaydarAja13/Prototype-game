@@ -21,6 +21,9 @@ public class PlayerInteract : MonoBehaviour
 
     void Update()
     {
+        // Jangan proses interaksi saat game sedang dipause
+        if (PauseManager.isPaused) return;
+
         // 1. Lakukan Raycast SETIAP FRAME untuk mengecek apa yang dilihat player
         Ray ray = fpsCam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
         RaycastHit hit;
@@ -36,7 +39,7 @@ public class PlayerInteract : MonoBehaviour
                 hitInteractable = true;
                 hintMessage = $"[{interactKey.ToString()}] Press Button";
                 
-                if (Input.GetKeyDown(interactKey) || Input.GetKeyDown(KeyCode.JoystickButton2))
+                if (Input.GetKeyDown(interactKey) || Input.GetKeyDown(KeyCode.JoystickButton2))  // PS4: bSquare = button 0
                 {
                     keypadButton.PressButton();
                 }
@@ -46,7 +49,7 @@ public class PlayerInteract : MonoBehaviour
                 hitInteractable = true;
                 hintMessage = $"[{interactKey.ToString()}] Pickup {pickableItem.itemName}";
                 
-                if (Input.GetKeyDown(interactKey) || Input.GetKeyDown(KeyCode.JoystickButton2))
+                if (Input.GetKeyDown(interactKey) || Input.GetKeyDown(KeyCode.JoystickButton2))  // PS4: bSquare = button 0
                 {
                     // Masukkan ke inventory player
                     PlayerInventory.Instance.PickUpItem(pickableItem);
@@ -72,7 +75,7 @@ public class PlayerInteract : MonoBehaviour
                 hitInteractable = true;
                 hintMessage = $"[{interactKey.ToString()}] Inspect {inspectableItem.itemName}";
                 
-                if (Input.GetKeyDown(interactKey) || Input.GetKeyDown(KeyCode.JoystickButton2))
+                if (Input.GetKeyDown(interactKey) || Input.GetKeyDown(KeyCode.JoystickButton2))  // PS4: bSquare = button 0
                 {
                     // Tampilkan gambar di layar tanpa memasukkan ke inventory
                     PlayerInventory.Instance.ShowInspect(inspectableItem.documentImage);
@@ -101,7 +104,7 @@ public class PlayerInteract : MonoBehaviour
                 hitInteractable = true;
                 hintMessage = $"[{interactKey.ToString()}] Hack {cctvTerminal.terminalName}";
 
-                if (Input.GetKeyDown(interactKey) || Input.GetKeyDown(KeyCode.JoystickButton2))
+                if (Input.GetKeyDown(interactKey) || Input.GetKeyDown(KeyCode.JoystickButton2))  // PS4: bSquare = button 0
                 {
                     if (CCTVManager.Instance != null)
                     {
@@ -118,7 +121,7 @@ public class PlayerInteract : MonoBehaviour
                 hitInteractable = true;
                 hintMessage = $"[{interactKey.ToString()}] Take a Flashlight";
 
-                if (Input.GetKeyDown(interactKey) || Input.GetKeyDown(KeyCode.JoystickButton2))
+                if (Input.GetKeyDown(interactKey) || Input.GetKeyDown(KeyCode.JoystickButton2))  // PS4: bSquare = button 0
                 {
                     PlayerFlashlight playerFlashlight = GetComponent<PlayerFlashlight>();
                     if (playerFlashlight == null) playerFlashlight = GetComponentInParent<PlayerFlashlight>();
@@ -146,7 +149,7 @@ public class PlayerInteract : MonoBehaviour
                 {
                     hintMessage = $"[{interactKey.ToString()}] Use Floppy Disk on {computer.computerName}";
                     
-                    if (Input.GetKeyDown(interactKey) || Input.GetKeyDown(KeyCode.JoystickButton2))
+                    if (Input.GetKeyDown(interactKey) || Input.GetKeyDown(KeyCode.JoystickButton2))  // PS4: bSquare = button 0
                     {
                         var clip = PlayerInventory.Instance.currentFloppyVideoClip;
                         PlayerInventory.Instance.ConsumeFloppyDisk();

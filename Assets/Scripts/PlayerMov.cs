@@ -156,6 +156,9 @@ public class PlayerMov : MonoBehaviour
 
     private void Update()
     {
+        // Jangan proses input dan gerakan saat game sedang dipause
+        if (PauseManager.isPaused) return;
+
         // ground check
         grounded = Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, whatIsGround);
 
@@ -176,16 +179,27 @@ public class PlayerMov : MonoBehaviour
 
     private void FixedUpdate()
     {
+        // Jangan gerakkan player saat game sedang dipause
+        if (PauseManager.isPaused) return;
+
         MovePlayer();
     }
 
     private void MyInput()
     {
-        horizontalInput = Input.GetAxisRaw("Horizontal");
-        verticalInput = Input.GetAxisRaw("Vertical");
+        // Cek apakah pemain sedang membuka dokumen atau CCTV
+        bool isInspecting = (PlayerInventory.Instance != null && PlayerInventory.Instance.isInspecting);
+        bool isViewingCCTV = (CCTVManager.Instance != null && CCTVManager.Instance.isViewingCCTV);
+        bool isBusy = isInspecting || isViewingCCTV;
+
+        horizontalInput = isBusy ? 0f : Input.GetAxisRaw("Horizontal");
+        verticalInput = isBusy ? 0f : Input.GetAxisRaw("Vertical");
+
+        // Cek apakah pemain menahan tombol lari
+        bool isSprinting = Input.GetKey(sprintKey) || Input.GetKey(KeyCode.JoystickButton8);
 
         // when to jump
-        if ((Input.GetKey(jumpKey) || Input.GetKey(KeyCode.JoystickButton0)) && readyToJump && grounded)
+        if (!isBusy && (Input.GetKey(jumpKey) || Input.GetKey(KeyCode.JoystickButton0)) && readyToJump && grounded)  // Xbox: A = button 0
         {
             readyToJump = false;
 
@@ -195,7 +209,8 @@ public class PlayerMov : MonoBehaviour
         }
 
         // start crouch
-        if (Input.GetKeyDown(crouchKey) || Input.GetKeyDown(KeyCode.JoystickButton1))
+        // Hanya bisa jongkok jika TIDAK SEDANG LARI dan tidak sedang sibuk di UI
+        if (!isBusy && !isSprinting && (Input.GetKeyDown(crouchKey) || Input.GetKeyDown(KeyCode.JoystickButton1)))  // Xbox: B = button 1
         {
             if (audioSource != null && crouchSound != null && grounded)
                 audioSource.PlayOneShot(crouchSound);
@@ -205,7 +220,8 @@ public class PlayerMov : MonoBehaviour
         }
 
         // stop crouch
-        if (Input.GetKeyUp(crouchKey) || Input.GetKeyUp(KeyCode.JoystickButton1))
+        // Tetap terima GetKeyUp meskipun isBusy (mencegah bug karakter nyangkut jongkok)
+        if (Input.GetKeyUp(crouchKey) || Input.GetKeyUp(KeyCode.JoystickButton1))  // Xbox: B = button 1
         {
             transform.localScale = new Vector3(transform.localScale.x, startYScale, transform.localScale.z);
         }
@@ -225,14 +241,14 @@ public class PlayerMov : MonoBehaviour
         }
 
         // Mode - Crouching
-        else if (Input.GetKey(crouchKey) || Input.GetKey(KeyCode.JoystickButton1))
+        else if (Input.GetKey(crouchKey) || Input.GetKey(KeyCode.JoystickButton1))  // Xbox: B = button 1
         {
             state = MovementState.crouching;
             desiredMoveSpeed = crouchSpeed;
         }
 
         // Mode - Sprinting
-        else if (grounded && (Input.GetKey(sprintKey) || Input.GetKey(KeyCode.JoystickButton10)))
+        else if (grounded && (Input.GetKey(sprintKey) || Input.GetKey(KeyCode.JoystickButton8))) // Xbox: L3 = button 8
         {
             state = MovementState.sprinting;
             desiredMoveSpeed = sprintSpeed;

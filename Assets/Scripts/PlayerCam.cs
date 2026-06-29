@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class PlayerCam : MonoBehaviour
 {
-    public float sensX;
+     public float sensX;
     public float sensY;
 
     public Transform orientation;
@@ -22,6 +22,18 @@ public class PlayerCam : MonoBehaviour
     public float aimSpeed = 10f;
     private Camera cam;
 
+    [Header("Gamepad Settings")]
+    [Tooltip("Sensitivity multiplier khusus untuk analog kanan controller")]
+    public float gamepadSensMultiplier = 3f;
+
+    [Header("Aim Assist Settings (Controller Only)")]
+    public bool useAimAssist = true;
+    public float aimAssistRadius = 1.5f;
+    public float aimAssistMaxDistance = 50f;
+    [Range(0f, 1f)]
+    public float aimAssistFriction = 0.5f; // Semakin kecil, semakin lambat saat membidik musuh
+    public float aimAssistMagnetism = 3f; // Kekuatan tarikan kamera ke musuh
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -38,11 +50,101 @@ public class PlayerCam : MonoBehaviour
   // Update is called once per frame
   void Update()
   {
+    // Jangan proses input kamera saat game sedang dipause
+    if (PauseManager.isPaused) return;
+
+    // Baca input mouse (bawaan Unity, Type: Mouse Movement)
     float mouseX = Input.GetAxisRaw("Mouse X") * Time.deltaTime * sensX;
     float mouseY = Input.GetAxisRaw("Mouse Y") * Time.deltaTime * sensY;
 
-    yRotation += mouseX;
-    xRotation -= mouseY;
+    // Baca input analog kanan controller secara TERPISAH (Type: Joystick Axis)
+    // Menggunakan nama axis berbeda agar tidak tercampur dengan Mouse
+    float stickX = 0f;
+    float stickY = 0f;
+    try
+    {
+        stickX = Input.GetAxisRaw("RightStickX") * Time.deltaTime * sensX * gamepadSensMultiplier;
+        stickY = Input.GetAxisRaw("RightStickY") * Time.deltaTime * sensY * gamepadSensMultiplier;
+    }
+    catch (System.Exception)
+    {
+        // Axis belum dibuat di Input Manager, abaikan saja
+    }
+
+    // --- AIM ASSIST LOGIC (CONTROLLER ONLY) ---
+    float assistX = 0f;
+    float assistY = 0f;
+
+    // Cek apakah ada input pergerakan pandangan dari controller (meskipun kecil)
+    bool isUsingController = (Mathf.Abs(stickX) > 0.001f || Mathf.Abs(stickY) > 0.001f);
+
+    if (useAimAssist && isUsingController)
+    {
+        // 1. Gunakan SphereCastAll untuk mendeteksi semua objek dalam radius (mengabaikan lantai yang menghalangi)
+        RaycastHit[] hits = Physics.SphereCastAll(cam.transform.position, aimAssistRadius, cam.transform.forward, aimAssistMaxDistance);
+        
+        Transform bestTarget = null;
+        float closestDistance = float.MaxValue;
+        Vector3 targetCenter = Vector3.zero;
+
+        foreach (RaycastHit hit in hits)
+        {
+            BotHitbox hitbox = hit.transform.GetComponent<BotHitbox>();
+            if (hitbox != null)
+            {
+                // Ambil titik tengah persis dari badan musuh (Center of Mass)
+                Vector3 hitboxCenter = hit.collider.bounds.center;
+                
+                // 2. Anti-Wallhack (Line of Sight Check)
+                // Lakukan Linecast dari kamera ke titik tengah badan musuh.
+                // Jika terhalang sesuatu yang BUKAN bagian dari musuh itu sendiri (misal tembok), lewati target ini.
+                RaycastHit sightHit;
+                if (Physics.Linecast(cam.transform.position, hitboxCenter, out sightHit))
+                {
+                    // Pastikan linecast mengenai musuh tersebut, jika mengenai benda lain, berarti terhalang
+                    if (sightHit.transform != hit.transform && sightHit.transform.GetComponent<BotHitbox>() == null)
+                    {
+                        continue; // Terhalang tembok/benda lain
+                    }
+                }
+
+                // Cari target yang terdekat dari tengah layar
+                float distanceToScreenCenter = Vector3.Distance(cam.transform.position + cam.transform.forward * hit.distance, hitboxCenter);
+                if (distanceToScreenCenter < closestDistance)
+                {
+                    closestDistance = distanceToScreenCenter;
+                    bestTarget = hit.transform;
+                    targetCenter = hitboxCenter;
+                }
+            }
+        }
+
+        if (bestTarget != null)
+        {
+            // 3. FRICTION: Perlambat kecepatan belok analog agar bidikan lebih stabil
+            stickX *= aimAssistFriction;
+            stickY *= aimAssistFriction;
+
+            // 4. MAGNETISM: Tarik pandangan perlahan menuju TENGAH BADAN musuh
+            Vector3 localTargetPos = cam.transform.InverseTransformPoint(targetCenter);
+            
+            // Perhitungan arah tarikan
+            float pullX = Mathf.Clamp(localTargetPos.x, -1f, 1f);
+            float pullY = Mathf.Clamp(localTargetPos.y, -1f, 1f);
+            
+            // Aplikasikan kekuatan magnetism (dikalikan dengan Time.deltaTime agar stabil di semua frame rate)
+            assistX = pullX * aimAssistMagnetism * Time.deltaTime;
+            assistY = pullY * aimAssistMagnetism * Time.deltaTime;
+        }
+    }
+    // ------------------------------------------
+
+    // Gabungkan mouse + stick + aim assist magnetism
+    float totalX = mouseX + stickX + assistX;
+    float totalY = mouseY + stickY + assistY;
+
+    yRotation += totalX;
+    xRotation -= totalY;
     xRotation = Mathf.Clamp(xRotation, -90f, 90f);
 
     // Menghitung kembalinya recoil secara halus (spring effect)

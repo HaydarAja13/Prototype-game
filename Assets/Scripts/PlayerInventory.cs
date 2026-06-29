@@ -27,7 +27,7 @@ public class PlayerInventory : MonoBehaviour
     
     public bool hasFloppyDisk = false;
     public UnityEngine.Video.VideoClip currentFloppyVideoClip;
-    private bool isInspecting = false;
+    public bool isInspecting = false;
 
     private void Awake()
     {
@@ -116,8 +116,16 @@ public class PlayerInventory : MonoBehaviour
 
     private void CloseInspect()
     {
-        isInspecting = false;
         if (inspectPanelUI != null) inspectPanelUI.SetActive(false);
+        StartCoroutine(DelayCloseInspect());
+    }
+
+    private System.Collections.IEnumerator DelayCloseInspect()
+    {
+        // Tunda perubahan status selama 1 frame agar PauseManager yang juga membaca input di frame yang sama
+        // tidak salah mendeteksi status isInspecting sebagai false lalu mempause game.
+        yield return new WaitForEndOfFrame();
+        isInspecting = false;
     }
 
     // Fungsi ini dipanggil dari PlayerInteract saat mengambil PickableItem

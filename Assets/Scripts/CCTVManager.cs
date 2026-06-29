@@ -40,7 +40,7 @@ public class CCTVManager : MonoBehaviour
     [Tooltip("Drag Kamera FPS Player")]
     public Camera playerCamera;
 
-    private bool isViewingCCTV = false;
+    public bool isViewingCCTV = false;
     private float switchCooldown = 0f;
     
     // Referensi script untuk dimatikan sementara
@@ -171,7 +171,7 @@ public class CCTVManager : MonoBehaviour
 
     public void ExitCCTVMode()
     {
-        isViewingCCTV = false;
+        StartCoroutine(DelayExitCCTVState());
 
         // 1. Matikan semua kamera CCTV dan cahayanya
         foreach (var camData in cctvCameras)
@@ -194,6 +194,13 @@ public class CCTVManager : MonoBehaviour
 
         // 4. Nyalakan kembali kamera player
         if (playerCamera != null) playerCamera.gameObject.SetActive(true);
+    }
+
+    private System.Collections.IEnumerator DelayExitCCTVState()
+    {
+        // Tunda perubahan status selama 1 frame agar PauseManager tidak mendeteksi status false pada frame yang sama
+        yield return new WaitForEndOfFrame();
+        isViewingCCTV = false;
     }
 
     private void SwitchToNextCamera()

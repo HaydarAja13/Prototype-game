@@ -1,5 +1,8 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using UnityEngine.EventSystems;
+using System.Collections;
 
 public class PauseManager : MonoBehaviour
 {
@@ -14,23 +17,62 @@ public class PauseManager : MonoBehaviour
     // Status statis untuk mengecek apakah game sedang dipause dari script lain
     public static bool isPaused = false;
 
+    // =====================================================================
+    // TimeScale sangat kecil agar EventSystem/InputModule tetap hidup
+    // Semua gameplay sudah diblokir oleh guard 'isPaused' di setiap script.
+    // =====================================================================
+    private const float PAUSED_TIMESCALE = 0.0001f;
+
     void Start()
     {
-        // Pastikan UI pause tidak aktif saat game baru dimulai
         if (pauseMenuUI != null)
         {
             pauseMenuUI.SetActive(false);
+            SetupPauseCanvas();
         }
         
-        // Pastikan waktu normal dan audio menyala saat awal
         Time.timeScale = 1f;
         AudioListener.pause = false;
         isPaused = false;
     }
 
+    /// <summary>
+    /// Setup Canvas khusus pada pause panel agar:
+    /// 1. Render di ATAS semua UI game lain (vignette, crosshair, dsb)
+    /// 2. Punya GraphicRaycaster sendiri agar deteksi klik independen
+    /// 3. CanvasGroup mengizinkan interaksi
+    /// Tanpa ini, elemen UI transparan seperti damageVignette (Image fullscreen
+    /// dengan raycastTarget=true) bisa memblokir klik ke tombol pause.
+    /// </summary>
+    private void SetupPauseCanvas()
+    {
+        // Tambah Canvas override agar sorting order independen
+        Canvas pauseCanvas = pauseMenuUI.GetComponent<Canvas>();
+        if (pauseCanvas == null)
+        {
+            pauseCanvas = pauseMenuUI.AddComponent<Canvas>();
+        }
+        pauseCanvas.overrideSorting = true;
+        pauseCanvas.sortingOrder = 999; // Pastikan paling atas
+
+        // Tambah GraphicRaycaster khusus agar pause panel mendeteksi klik sendiri
+        if (pauseMenuUI.GetComponent<GraphicRaycaster>() == null)
+        {
+            pauseMenuUI.AddComponent<GraphicRaycaster>();
+        }
+
+        // Jika ada CanvasGroup, pastikan interaksi diizinkan
+        CanvasGroup cg = pauseMenuUI.GetComponent<CanvasGroup>();
+        if (cg != null)
+        {
+            cg.interactable = true;
+            cg.blocksRaycasts = true;
+        }
+    }
+
     void Update()
     {
-        // Tekan tombol Escape (ESC) atau Start (JoystickButton7) untuk memunculkan atau menyembunyikan Pause Menu
+        // Tekan tombol Escape (ESC) atau tombol Start/Options di controller untuk memunculkan atau menyembunyikan Pause Menu
         if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.JoystickButton7))
         {
             if (isPaused)
@@ -39,8 +81,29 @@ public class PauseManager : MonoBehaviour
             }
             else
             {
-                PauseGame();
+                // Cek apakah player sedang inspect atau menggunakan CCTV. 
+                // Jika ya, biarkan script bersangkutan yang memproses tombol Escape.
+                bool isInspecting = (PlayerInventory.Instance != null && PlayerInventory.Instance.isInspecting);
+                bool isViewingCCTV = (CCTVManager.Instance != null && CCTVManager.Instance.isViewingCCTV);
+
+                if (!isInspecting && !isViewingCCTV)
+                {
+                    PauseGame();
+                }
             }
+        }
+
+        // Jika sedang pause, tekan Q atau tombol Select/Share di controller untuk kembali ke Main Menu
+        if (isPaused && (Input.GetKeyDown(KeyCode.Q) || Input.GetKeyDown(KeyCode.JoystickButton6)))
+        {
+            GoToMainMenu();
+        }
+
+        // Safety: pastikan cursor tetap terbuka selama pause
+        if (isPaused && Cursor.lockState != CursorLockMode.None)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
         }
     }
 
@@ -51,18 +114,46 @@ public class PauseManager : MonoBehaviour
     {
         if (pauseMenuUI != null)
         {
-            pauseMenuUI.SetActive(true); // Tampilkan UI Pause
+            pauseMenuUI.SetActive(true);
         }
 
-        Time.timeScale = 0f; // Hentikan waktu game
+        Time.timeScale = PAUSED_TIMESCALE;
         isPaused = true;
-        
-        // Hentikan sementara semua suara (opsional, bisa dihapus jika ingin BGM tetap bunyi)
         AudioListener.pause = true; 
 
-        // Buka kunci dan tampilkan kursor mouse agar pemain bisa klik tombol UI
+        // Buka kunci dan tampilkan kursor mouse
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+
+        // Reset input module agar pointer tracking dimulai ulang
+        // setelah cursor berubah dari Locked ke None
+        StartCoroutine(ForceResetInputModule());
+    }
+
+    /// <summary>
+    /// Paksa reset InputModule pada EventSystem.
+    /// Ketika cursor berubah dari Locked ke None, InputSystemUIInputModule
+    /// kadang tidak langsung mendeteksi posisi pointer baru.
+    /// Dengan me-restart module, tracking dimulai ulang dari posisi cursor saat ini.
+    /// </summary>
+    private IEnumerator ForceResetInputModule()
+    {
+        // Tunggu 1 frame agar cursor benar-benar ter-unlock oleh OS
+        yield return null;
+
+        if (EventSystem.current != null)
+        {
+            BaseInputModule module = EventSystem.current.currentInputModule;
+            if (module != null)
+            {
+                // Matikan lalu nyalakan ulang untuk force re-init pointer state
+                module.enabled = false;
+                // Tunggu 1 frame lagi
+                yield return null;
+                module.enabled = true;
+                Debug.Log("[PauseManager] Input module reset berhasil.");
+            }
+        }
     }
 
     /// <summary>
@@ -73,16 +164,14 @@ public class PauseManager : MonoBehaviour
     {
         if (pauseMenuUI != null)
         {
-            pauseMenuUI.SetActive(false); // Sembunyikan UI Pause
+            pauseMenuUI.SetActive(false);
         }
 
-        Time.timeScale = 1f; // Kembalikan waktu berjalan normal
+        Time.timeScale = 1f;
         isPaused = false;
-        
-        // Kembalikan suara game
         AudioListener.pause = false;
 
-        // Kunci kembali kursor dan sembunyikan agar cocok untuk game FPS
+        // Kunci kembali kursor
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
@@ -93,8 +182,6 @@ public class PauseManager : MonoBehaviour
     /// </summary>
     public void GoToMainMenu()
     {
-        // PENTING: Kembalikan waktu berjalan normal dan suara nyala sebelum pindah scene.
-        // Jika tidak, saat main lagi gamenya akan macet!
         Time.timeScale = 1f; 
         isPaused = false;
         AudioListener.pause = false;

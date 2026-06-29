@@ -36,10 +36,22 @@ public class Sliding : MonoBehaviour
 
     private void Update()
     {
-        horizontalInput = Input.GetAxisRaw("Horizontal");
-        verticalInput = Input.GetAxisRaw("Vertical");
+        // Jangan proses input saat game sedang dipause
+        if (PauseManager.isPaused) return;
 
-        if (Input.GetKeyDown(slideKey) || Input.GetKeyDown(KeyCode.JoystickButton1))
+        // Cek apakah pemain sedang membuka dokumen atau CCTV
+        bool isInspecting = (PlayerInventory.Instance != null && PlayerInventory.Instance.isInspecting);
+        bool isViewingCCTV = (CCTVManager.Instance != null && CCTVManager.Instance.isViewingCCTV);
+        bool isBusy = isInspecting || isViewingCCTV;
+
+        horizontalInput = isBusy ? 0f : Input.GetAxisRaw("Horizontal");
+        verticalInput = isBusy ? 0f : Input.GetAxisRaw("Vertical");
+
+        // Cek apakah pemain menahan tombol lari (L3 atau Shift)
+        bool isSprinting = Input.GetKey(pm.sprintKey) || Input.GetKey(KeyCode.JoystickButton8);
+
+        // Hanya bisa slide jika SEDANG LARI dan tidak sedang sibuk di UI
+        if (!isBusy && isSprinting && (Input.GetKeyDown(slideKey) || Input.GetKeyDown(KeyCode.JoystickButton1)))
             StartSlide();
 
         if (Input.GetKeyUp(slideKey) || Input.GetKeyUp(KeyCode.JoystickButton1))

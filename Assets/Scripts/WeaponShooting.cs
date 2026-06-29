@@ -85,7 +85,9 @@ public class WeaponShooting : MonoBehaviour
 
     void Update()
     {
+        // Jangan proses input saat game sedang dipause
         if (PauseManager.isPaused) return;
+
         // Cek apakah tombol tembak (Klik Kiri) sedang ditekan/ditahan
         bool isShooting = Input.GetKey(shootKey) || Input.GetKey(KeyCode.JoystickButton5);
 

@@ -2097,6 +2097,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIPopupPanel
   popupPanel: {fileID: 563960807}
+  firstSelectedButton: {fileID: 745261121}
 --- !u!4 &669676181
 Transform:
   m_ObjectHideFlags: 0
@@ -2125,6 +2126,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIPopupPanel
   popupPanel: {fileID: 2103571640}
+  firstSelectedButton: {fileID: 1027454126}
 --- !u!114 &669676183
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2138,6 +2140,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIPopupPanel
   popupPanel: {fileID: 809488546}
+  firstSelectedButton: {fileID: 855582430}
 --- !u!1 &745261121
 GameObject:
   m_ObjectHideFlags: 0
@@ -2444,9 +2447,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 669676180}
+      - m_Target: {fileID: 669676183}
         m_TargetAssemblyTypeName: UIPopupPanel, Assembly-CSharp
-        m_MethodName: ShowPanel
+        m_MethodName: HidePanel
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2456,9 +2459,9 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 669676183}
+      - m_Target: {fileID: 669676180}
         m_TargetAssemblyTypeName: UIPopupPanel, Assembly-CSharp
-        m_MethodName: HidePanel
+        m_MethodName: ShowPanel
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3071,6 +3074,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MainMenuManager
   namaSceneGame: MainLevel
+  firstSelectedButton: {fileID: 418999322}
 --- !u!4 &1121799513
 Transform:
   m_ObjectHideFlags: 0

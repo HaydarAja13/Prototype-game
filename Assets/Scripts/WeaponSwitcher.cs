@@ -40,7 +40,9 @@ public class WeaponSwitcher : MonoBehaviour
 
     void Update()
     {
+        // Jangan proses input saat game sedang dipause
         if (PauseManager.isPaused) return;
+
         // Detect number key presses for weapon selection
         for (int i = 0; i < weapons.Length && i < 9; i++) // support up to key 9
         {

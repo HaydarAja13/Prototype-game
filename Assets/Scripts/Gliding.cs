@@ -26,6 +26,9 @@ public class Gliding : MonoBehaviour
 
     private void Update()
     {
+        // Jangan proses input saat game sedang dipause
+        if (PauseManager.isPaused) return;
+
         horizontalInput = Input.GetAxisRaw("Horizontal");
         verticalInput = Input.GetAxisRaw("Vertical");
 

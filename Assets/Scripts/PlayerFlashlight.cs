@@ -24,6 +24,9 @@ public class PlayerFlashlight : MonoBehaviour
 
     void Update()
     {
+        // Jangan proses input saat game sedang dipause
+        if (PauseManager.isPaused) return;
+
         // D-Pad Up detection via Axis
         float dpadY = 0f;
         try { dpadY = Input.GetAxisRaw("DPadY"); } catch {} 

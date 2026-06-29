@@ -44,12 +44,19 @@ public class WeaponRotation : MonoBehaviour
     [Tooltip("Kecepatan sway kembali ke posisi semula")]
     public float swaySmooth = 6f;
 
+    [Header("Gamepad Settings")]
+    [Tooltip("Multiplier khusus untuk efek sway menggunakan analog kanan controller")]
+    public float gamepadSwayMultiplier = 3f;
+
     // Internal
     private float swayX;
     private float swayY;
 
     private void LateUpdate()
     {
+        // Jangan proses saat game sedang dipause
+        if (PauseManager.isPaused) return;
+
         // Gunakan LateUpdate agar dihitung SETELAH
         // PlayerCam.Update() selesai mengupdate rotasi kamera & orientation.
 
@@ -128,15 +135,30 @@ public class WeaponRotation : MonoBehaviour
     }
 
     /// <summary>
-    /// Menghitung efek sway (goyang ringan) berdasarkan input mouse.
+    /// Menghitung efek sway (goyang ringan) berdasarkan input mouse dan controller.
     /// </summary>
     private Quaternion CalculateSway()
     {
         float mouseX = Input.GetAxisRaw("Mouse X");
         float mouseY = Input.GetAxisRaw("Mouse Y");
 
-        float targetSwayX = Mathf.Clamp(-mouseY * swayAmount, -maxSwayAmount, maxSwayAmount);
-        float targetSwayY = Mathf.Clamp(-mouseX * swayAmount, -maxSwayAmount, maxSwayAmount);
+        float stickX = 0f;
+        float stickY = 0f;
+        try
+        {
+            stickX = Input.GetAxisRaw("RightStickX") * gamepadSwayMultiplier;
+            stickY = Input.GetAxisRaw("RightStickY") * gamepadSwayMultiplier;
+        }
+        catch (System.Exception)
+        {
+            // Abaikan jika Axis belum dibuat di Input Manager
+        }
+
+        float totalX = mouseX + stickX;
+        float totalY = mouseY + stickY;
+
+        float targetSwayX = Mathf.Clamp(-totalY * swayAmount, -maxSwayAmount, maxSwayAmount);
+        float targetSwayY = Mathf.Clamp(-totalX * swayAmount, -maxSwayAmount, maxSwayAmount);
 
         swayX = Mathf.Lerp(swayX, targetSwayX, swaySmooth * Time.deltaTime);
         swayY = Mathf.Lerp(swayY, targetSwayY, swaySmooth * Time.deltaTime);
